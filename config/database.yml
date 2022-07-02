@@ -9,4 +9,8 @@ default: &default
 
 development:
   <<: *default
-  database: rails_store_development
+  database: rails_store__development
+
+test:
+  <<: *default
+  database: rails_store_test

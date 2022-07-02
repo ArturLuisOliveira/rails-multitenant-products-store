@@ -71,6 +71,10 @@ group :development do
   # gem "spring"
 end
 
-group :development, :test do
+group :test do
+  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'rails-controller-testing'
   gem 'rspec-rails', '>= 3.9.0'
 end
