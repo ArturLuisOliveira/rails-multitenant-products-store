@@ -54,8 +54,10 @@ gem 'rubocop-performance'
 gem 'rubocop-rails'
 gem 'rubocop-rspec'
 
-gem 'devise', '~> 4.8', '>= 4.8.1'
+gem 'devise'
 gem 'doorkeeper'
+
+gem 'rack-cors'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

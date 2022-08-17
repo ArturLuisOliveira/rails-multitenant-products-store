@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ItemsController < ApplicationController
-  before_action :authenticate_user!, only: %i[update destroy]
+  before_action :doorkeeper_authorize!, only: %i[update destroy]
 
   def index
     render json: {}, status: :ok

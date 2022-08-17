@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ImagesController < ApplicationController
-  before_action :authenticate_user!
+  before_action :doorkeeper_authorize!
 
   def create
     render status: :created
