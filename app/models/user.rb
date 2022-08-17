@@ -6,6 +6,8 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  belongs_to :store
+
   # the authenticate method from devise documentation
   def self.authenticate(email, password)
     user = User.find_for_authentication(email:)
