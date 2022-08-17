@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CategoriesController < ApplicationController
+  before_action :authenticate_user!, only: %i[create update destroy]
+
   def index
     render json: {}, status: :ok
   end

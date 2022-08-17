@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class StoresController < ApplicationController
+  before_action :authenticate_user!, only: [:update]
   before_action :load_store, only: [:show]
+
   def show
     render json: @store, status: :ok, serializer: StoreSerializer
   end
