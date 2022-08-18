@@ -9,7 +9,12 @@ class StoresController < ApplicationController
   end
 
   def update
-    if Stores::Updater.new(@store, { description: params["description"] }).update
+    unless current_user.store == @store
+      render json: { error: 'Unauthorized access' },
+             status: :unauthorized and return
+    end
+
+    if Stores::Updater.new(@store, update_params).update
       head :ok
     else
       render_something_went_wrong
