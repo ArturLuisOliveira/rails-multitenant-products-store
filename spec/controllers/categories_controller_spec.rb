@@ -39,40 +39,49 @@ RSpec.describe CategoriesController, type: :request do
     end
   end
 
-  # describe 'PATCH#update' do
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category, store:) }
-  #   let(:user) { create(:user, store:) }
-  #   let(:headers) { create_headers_with_bearer_token(user) }
-  #   let(:params) { { name: 'new name', description: 'new description' } }
-  #   let(:route) { categories_path(category) }
+  describe 'PATCH#update' do
+    let(:store_a) { create(:store) }
+    let(:store_b) { create(:store) }
 
-  #   describe 'when the user is not logged' do
-  #     it 'has a unauthorized status' do
-  #       patch route, params: params
+    let(:category_a) { create(:category, store: store_a) }
+    let(:category_b) { create(:category, store: store_b) }
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
+    let(:user) { create(:user, store: store_a) }
+    let(:headers) { create_headers_with_bearer_token(user) }
+    let(:params) { { name: 'new name', description: 'new description' } }
 
-  #   describe 'when the user belongs to a different store' do
-  #     it 'has a unauthorized status' do
-  #       patch route, params: params, headers: headers
+    describe 'when the user is not logged' do
+      let(:route) { category_path(category_a) }
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
+      it 'has an unauthorized status' do
+        patch route, params: params
 
-  #   describe 'when the user is logged' do
-  #     it 'updates the given category' do
-  #       patch route, params: params, headers: headers
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #       category.reload
-  #       expect(category.name).to eq(params[:name])
-  #       expect(category.description).to eq(params[:description])
-  #     end
-  #   end
-  # end
+    describe 'when the user belongs to a different store' do
+      let(:route) { category_path(category_b) }
+
+      it 'has an unauthorized status' do
+        patch route, params: params, headers: headers
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe 'when the user is logged' do
+      let(:route) { category_path(category_a) }
+
+      it 'updates the given category' do
+        patch route, params: params, headers: headers
+
+        category_a.reload
+        expect(category_a.name).to eq(params[:name])
+        expect(category_a.description).to eq(params[:description])
+      end
+    end
+  end
 
   # describe 'DELETE#destroy' do
   #   let(:store) { create(:store) }
