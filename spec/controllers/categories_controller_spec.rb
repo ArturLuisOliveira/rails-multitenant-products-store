@@ -83,18 +83,43 @@ RSpec.describe CategoriesController, type: :request do
     end
   end
 
-  # describe 'DELETE#destroy' do
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category, store:) }
-  #   let(:user) { create(:user, store:) }
-  #   let(:route) { categories_path(category.id) }
+  describe 'DELETE#destroy' do
+    let(:store_a) { create(:store) }
+    let(:store_b) { create(:store) }
+    let!(:category_a) { create(:category, store: store_a) }
+    let(:category_b) { create(:category, store: store_b) }
 
-  #   describe 'when the user is not logged' do
-  #     it 'has a unauthorized status' do
-  #       patch route, params: params
+    let(:user) { create(:user, store: store_a) }
+    let(:headers) { create_headers_with_bearer_token(user) }
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end.to change(Category, :count).from(1).to(0)
-  #   end
-  # end
+    describe 'when the user is not logged' do
+      let(:route) { category_path(category_a) }
+
+      it 'has an unauthorized status' do
+        delete route
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe 'when the user belongs to a different store' do
+      let(:route) { category_path(category_b) }
+
+      it 'has an unauthorized status' do
+        delete route, headers: headers
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe 'when the user is logged' do
+      let(:route) { category_path(category_a) }
+
+      it 'removes the category' do
+        expect do
+          delete route, headers:
+        end.to change(Category, :count).from(1).to(0)
+      end
+    end
+  end
 end

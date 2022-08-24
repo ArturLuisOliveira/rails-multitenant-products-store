@@ -3,7 +3,7 @@
 class CategoriesController < ApplicationController
   before_action :doorkeeper_authorize!, only: %i[create update destroy]
   before_action :load_store, only: %i[index]
-  before_action :load_category, only: %i[update]
+  before_action :load_category, only: %i[update destroy]
 
   def index
     render json: categories, status: :ok, each_serializer: CategorySerializer
@@ -38,12 +38,20 @@ class CategoriesController < ApplicationController
   end
 
   def destroy
-    render status: :ok
+    unless current_user.store == @category.store
+      render json: { error: 'Unauthorized access' },
+             status: :unauthorized and return
+    end
+
+    if Categories::Destroyer.new(params[:id]).destroy
+      render json: @category, status: :ok, serializer: CategorySerializer
+    else
+      render json: {}, status: :unprocessable_entity
+    end
   end
 
   private
 
-  # index
   def index_params
     params.permit(:store_id)
   end
@@ -56,12 +64,9 @@ class CategoriesController < ApplicationController
     @categories = Categories::Query.new.by_store(@store).query
   end
 
-  # create
   def create_params
     params.permit(:name, :description)
   end
-
-  # update
 
   def update_params
     params.permit(:id, :name, :description)
