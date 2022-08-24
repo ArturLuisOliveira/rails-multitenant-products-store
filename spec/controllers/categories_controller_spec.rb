@@ -17,6 +17,28 @@ RSpec.describe CategoriesController, type: :request do
     end
   end
 
+  describe 'POST#create' do
+    let(:store) { create(:store) }
+    let(:user) { create(:user, store:) }
+    let(:headers) { create_headers_with_bearer_token(user) }
+    let(:params) { { name: 'new name', description: 'new description' } }
+    let(:route) { categories_path }
+
+    describe 'when the user is not logged' do
+      it 'has an unauthorized status' do
+        post route, params: params
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe 'when the user is logged' do
+      it 'creates the given category' do
+        expect { post route, params:, headers: }.to change(Category, :count).from(0).to(1)
+      end
+    end
+  end
+
   # describe 'PATCH#update' do
   #   let(:store) { create(:store) }
   #   let(:category) { create(:category, store:) }

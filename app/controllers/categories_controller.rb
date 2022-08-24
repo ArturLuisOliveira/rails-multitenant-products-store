@@ -9,7 +9,15 @@ class CategoriesController < ApplicationController
   end
 
   def create
-    render status: :created
+    if Categories::Creator.new(
+      store: current_user.store,
+      name: create_params[:name],
+      description: create_params[:description]
+    ).create
+      render json: {}, status: :created
+    else
+      render json: {}, status: :unprocessable_entity
+    end
   end
 
   def update
@@ -22,6 +30,7 @@ class CategoriesController < ApplicationController
 
   private
 
+  # index
   def index_params
     params.permit(:store_id)
   end
@@ -32,5 +41,10 @@ class CategoriesController < ApplicationController
 
   def categories
     @categories = Categories::Query.new.by_store(@store).query
+  end
+
+  # create
+  def create_params
+    params.permit(:name, :description)
   end
 end
