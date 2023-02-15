@@ -117,44 +117,58 @@ RSpec.describe ItemsController, type: :request do
     end
   end
 
-  # describe 'DELETE#destroy' do
-  #   let(:route) { item_path(item.id) }
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category) }
-  #   let(:item) { create(:item, store:, category:) }
-  #   let(:user) { create(:user, store:) }
-  #   let(:headers) { create_headers_with_bearer_token(user) }
+  describe 'DELETE#destroy' do
+    let(:route) { item_path(item.id) }
+    let(:store) { create(:store) }
+    let(:category) { create(:category) }
+    let(:item) { create(:item, store:, category:) }
+    let(:user) { create(:user, store:) }
+    let(:headers) { create_headers_with_bearer_token(user) }
 
-  #   context 'when the user is not logged' do
-  #     xit 'has a unauthorized status' do
-  #       delete route
+    context 'when the user is not logged' do
+      it 'has a unauthorized status' do
+        delete route
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #   context 'when the user is logged' do
-  #     xit 'deletes the given item' do
-  #       delete route, headers: headers
+    context 'when the user is logged' do
+      it 'deletes the given item' do
+        delete route, headers: headers
 
-  #       expect(Item.find_by(id: item.id)).to be_nil
-  #     end
-  #   end
+        expect(Item.find_by(id: item.id)).to be_nil
+      end
 
-  #   context 'when the user belongs to a different store' do
-  #     let(:route) { item_path(item.id) }
-  #     let(:outside_store) { create(:store) }
-  #     let(:user) { create(:user, store:) }
-  #     let(:item) { create(:item, store: outside_store, category:) }
-  #     let(:headers) { create_headers_with_bearer_token(user) }
+      it 'has a ok status' do
+        delete route, headers: headers
 
-  #     xit 'has a unauthorized status' do
-  #       delete route, headers: headers
+        expect(response).to have_http_status(:ok)
+      end
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
-  # end
+      it 'returns the deleted item' do
+        delete route, headers: headers
+
+        expect(JSON.parse(response.body)).to include(
+          'id',
+          'name',
+          'description',
+          'aditional_info'
+        )
+      end
+    end
+
+    context 'when the item belongs to a different store' do
+      let(:item) { create(:item) }
+      let(:route) { item_path(item.id) }
+
+      it 'has a unauthorized status' do
+        delete route, headers: headers
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 
   # describe 'POST#create' do
   #   let(:route) { items_path }

@@ -3,7 +3,7 @@
 class ItemsController < ApplicationController
   before_action :doorkeeper_authorize!, only: %i[update destroy create]
   before_action :items, only: %i[index]
-  before_action :item, only: %i[show update]
+  before_action :item, only: %i[show update destroy]
 
   def index
     render json: @items, status: :ok, each_serializer: ItemSerializer
@@ -24,7 +24,13 @@ class ItemsController < ApplicationController
   end
 
   def destroy
-    render status: :ok
+    return render json: {}, status: :unauthorized unless current_user.store == @item.store
+
+    if Items::Destroyer.new(@item).destroy
+      render json: @item, status: :ok
+    else
+      render json: {}, status: :unprocessable_entity
+    end
   end
 
   def create
