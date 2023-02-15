@@ -1,24 +1,30 @@
-# README
+# Rails Products Store
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+RESTful API to list and categorize products. The purpose of this project is to practice Ruby on Rails.
+</br>
+</br>
 
-Things you may want to cover:
+## Running the project
 
-* Ruby version
+The easiest way to run this project locally is using docker-compose.
 
-* System dependencies
+### Build App & Run App
 
-* Configuration
+```
+docker-compose build
+docker-compose run
+```
 
-* Database creation
+### Configure Database
 
-* Database initialization
+```
+docker-compose run api rails db:create db:migrate db:seed
+```
 
-* How to run the test suite
+### Run Tests
 
-* Services (job queues, cache servers, search engines, etc.)
+To run the tests locally run the following command.
 
-* Deployment instructions
-
-* ...
+```
+docker-compose run api rspec
+```
