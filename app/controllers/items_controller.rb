@@ -3,7 +3,7 @@
 class ItemsController < ApplicationController
   before_action :doorkeeper_authorize!, only: %i[update destroy create]
   before_action :items, only: %i[index]
-  before_action :item, only: %i[show]
+  before_action :item, only: %i[show update]
 
   def index
     render json: @items, status: :ok, each_serializer: ItemSerializer
@@ -14,7 +14,13 @@ class ItemsController < ApplicationController
   end
 
   def update
-    render status: :ok
+    return render json: {}, status: :unauthorized unless current_user.store == @item.store
+
+    if Items::Updater.new(item:, params: update_params).update
+      render json: @item, status: :ok, serializer: ItemSerializer
+    else
+      render json: {}, status: :unprocessable_entity
+    end
   end
 
   def destroy
@@ -40,5 +46,9 @@ class ItemsController < ApplicationController
 
   def item
     @item = Items::Finder.new(params[:id]).find
+  end
+
+  def update_params
+    params.permit(:id, :name, :description)
   end
 end

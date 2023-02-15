@@ -52,45 +52,70 @@ RSpec.describe ItemsController, type: :request do
     end
   end
 
-  # describe 'PATCH#update' do
-  #   let(:route) { item_path(item.id) }
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category) }
-  #   let(:item) { create(:item, store:, category:) }
-  #   let(:user) { create(:user, store:) }
-  #   let(:headers) { create_headers_with_bearer_token(user) }
+  describe 'PATCH#update' do
+    context 'when the user is not logged' do
+      let(:route) { item_path(item.id) }
+      let(:store) { create(:store) }
 
-  #   context 'when the user is not logged' do
-  #     xit 'has a unauthorized status' do
-  #       patch route, params: { name: 'New name' }
+      context 'there is a item' do
+        let(:item) { create(:item, store:) }
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
+        it 'has a unauthorized status' do
+          patch route, params: { name: 'New name' }
 
-  #   context 'when the user is logged' do
-  #     xit 'updates the given item' do
-  #       patch route, params: { name: 'New name' }, headers: headers
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
 
-  #       item.reload
-  #       expect(item.name).to eq('New name')
-  #     end
-  #   end
+    context 'when the user is logged' do
+      let(:store) { create(:store) }
+      let(:user) { create(:user, store:) }
+      let(:headers) { create_headers_with_bearer_token(user) }
 
-  #   context 'when the user belongs to a different store' do
-  #     let(:route) { item_path(item.id) }
-  #     let(:outside_store) { create(:store) }
-  #     let(:user) { create(:user, store:) }
-  #     let(:item) { create(:item, store: outside_store, category:) }
-  #     let(:headers) { create_headers_with_bearer_token(user) }
+      context 'when the item is from the user store' do
+        let(:item) { create(:item, store:) }
+        let(:route) { item_path(item.id) }
+        let(:params) { { name: 'New name' } }
 
-  #     xit 'has a unauthorized status' do
-  #       patch route, params: { name: 'New name' }, headers: headers
+        it 'updates the given item' do
+          patch route, params: params, headers: headers
+          item.reload
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
-  # end
+          expect(item.name).to eq('New name')
+        end
+
+        it 'has a ok status' do
+          patch route, params: params, headers: headers
+
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns the updated item' do
+          patch route, params: params, headers: headers
+
+          expect(JSON.parse(response.body)).to include(
+            'id',
+            'name',
+            'description',
+            'aditional_info'
+          )
+        end
+      end
+
+      context 'when the item is not from the user store' do
+        let(:item) { create(:item) }
+        let(:route) { item_path(item.id) }
+        let(:params) { { name: 'New name' } }
+
+        it 'has a unauthorized status' do
+          patch route, params: params, headers: headers
+
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+  end
 
   # describe 'DELETE#destroy' do
   #   let(:route) { item_path(item.id) }
