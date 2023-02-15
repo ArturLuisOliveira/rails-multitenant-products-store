@@ -12,7 +12,7 @@ RSpec.describe ItemsController, type: :request do
     let!(:item_c) { create(:item, category:) }
     let(:params) { { store_id: store.id } }
 
-    it 'returns the given items' do
+    it 'return the given items' do
       get route, params: params
 
       expect(assigns(:items)).to include(item_a)
@@ -32,17 +32,25 @@ RSpec.describe ItemsController, type: :request do
     end
   end
 
-  # describe 'GET#show' do
-  #   let(:route) { item_path(item.id) }
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category) }
-  #   let(:item) { create(:item, store:, category:) }
+  describe 'GET#show' do
+    let(:route) { item_path(item.id) }
+    let(:store) { create(:store) }
+    let(:category) { create(:category) }
+    let(:item) { create(:item, store:, category:) }
+    let(:params) { { store_id: store.id } }
 
-  #   xit 'return the given item' do
-  #     get route
-  #     expect(assigns(:item)).to eq(item)
-  #   end
-  # end
+    it 'return the given item' do
+      get route, params: params
+
+      expect(assigns(:item)).to eq(item)
+    end
+
+    it 'has a ok status' do
+      get route, params: params
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 
   # describe 'PATCH#update' do
   #   let(:route) { item_path(item.id) }
