@@ -4,6 +4,7 @@ class ItemsController < ApplicationController
   before_action :doorkeeper_authorize!, only: %i[update destroy create]
   before_action :items, only: %i[index]
   before_action :item, only: %i[show update destroy]
+  before_action :category, only: %i[create]
 
   def index
     render json: @items, status: :ok, each_serializer: ItemSerializer
@@ -34,7 +35,23 @@ class ItemsController < ApplicationController
   end
 
   def create
-    render status: :created
+    unless @category.store == current_user.store
+      return render json: {},
+                    status: :bad_request
+    end
+
+    @item = Items::Creator.new(
+      store: current_user.store,
+      description: create_params[:description],
+      name: create_params[:name],
+      category: @category
+    ).create
+
+    if @item
+      render json: @item, status: :created, serializer: ItemSerializer
+    else
+      render json: {}, status: :unprocessable_entity
+    end
   end
 
   private
@@ -56,5 +73,13 @@ class ItemsController < ApplicationController
 
   def update_params
     params.permit(:id, :name, :description)
+  end
+
+  def create_params
+    params.permit(:name, :description, :category_id)
+  end
+
+  def category
+    @category = Categories::Finder.new(create_params[:category_id]).find
   end
 end

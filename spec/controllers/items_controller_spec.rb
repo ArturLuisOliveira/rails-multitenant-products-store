@@ -170,35 +170,60 @@ RSpec.describe ItemsController, type: :request do
     end
   end
 
-  # describe 'POST#create' do
-  #   let(:route) { items_path }
-  #   let(:store) { create(:store) }
-  #   let(:category) { create(:category) }
-  #   let(:user) { create(:user, store:) }
-  #   let(:headers) { create_headers_with_bearer_token(user) }
-  #   let(:item_params) do
-  #     {
-  #       name: 'Item name',
-  #       description: 'Item description',
-  #       price: 100,
-  #       category_id: category.id
-  #     }
-  #   end
+  describe 'POST#create' do
+    let(:route) { items_path }
+    let(:store) { create(:store) }
+    let(:user) { create(:user, store:) }
+    let(:category) { create(:category, store:) }
+    let(:headers) { create_headers_with_bearer_token(user) }
+    let(:params) do
+      {
+        name: 'Item name',
+        description: 'Item description',
+        category_id: category.id
+      }
+    end
 
-  #   context 'when the user is not logged' do
-  #     xit 'has a unauthorized status' do
-  #       post route, params: item_params
+    context 'when the user is not logged' do
+      it 'has a unauthorized status' do
+        post route, params: params
 
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #   context 'when the user is logged' do
-  #     xit 'creates the given item' do
-  #       post route, params: item_params, headers: headers
+    context 'when the user is logged' do
+      it 'creates the given item' do
+        expect { post route, params:, headers: }.to change(Item, :count).from(0).to(1)
+      end
 
-  #       expect(Item.last.name).to eq('Item name')
-  #     end
-  #   end
-  # end
+      it 'has a created status' do
+        post route, params: params, headers: headers
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'returns the created item' do
+        post route, params: params, headers: headers
+
+        expect(JSON.parse(response.body)).to include(
+          'id',
+          'name',
+          'description',
+          'aditional_info'
+        )
+      end
+
+      context 'when the category is not from the user store' do
+        let(:category) { create(:category) }
+        let(:params) { { name: 'New name', description: 'New description', category_id: category.id } }
+
+        it 'has a bad request status' do
+          post route, params: params, headers: headers
+
+          expect(response).to have_http_status(:bad_request)
+        end
+      end
+    end
+  end
 end
