@@ -1,6 +1,6 @@
-# Rails Products Store (WIP)
+# Rails Multi-Tenancy Products Store (WIP)
 
-RESTful API to list and categorize products. The purpose of this project is to practice Ruby on Rails concepts.
+RESTful API to list and categorize products by store. The purpose of this project is to practice Ruby on Rails concepts.
 </br>
 </br>
 

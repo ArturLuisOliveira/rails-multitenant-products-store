@@ -12,4 +12,5 @@ Rails.application.routes.draw do
   # root "articles#index"
   resources :stores, only: %i[update show]
   resources :categories, only: %i[index create update destroy]
+  resources :items, only: %i[index show create update destroy]
 end
