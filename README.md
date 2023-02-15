@@ -10,13 +10,14 @@ Simplified entity relation diagram of the project database.
 https://whimsical.com/erd-7wCVtxvayhgy3PxbeUnuYP
 
 ### Endpoints
+
 Endpoints that the API provides.
 https://whimsical.com/endpoints-Vh6H1SxjfoLADLZRidvfVi
 
 ### UML
+
 Unified model language to describe the functionalities of the system.
 https://whimsical.com/uml-AJURGu9JU396heFEstEYn
-
 
 </br>
 
@@ -34,6 +35,8 @@ docker-compose run
 ```
 
 ### Configure Database
+
+Command to create db, run migrations and create seed files.
 
 ```
 docker-compose run api rails db:create db:migrate db:seed
