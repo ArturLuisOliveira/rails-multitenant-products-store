@@ -5,54 +5,61 @@ require 'rails_helper'
 RSpec.describe ItemsController, type: :request do
   describe 'GET#index' do
     let(:route) { items_path }
-    let(:store) { create(:store) }
-    let(:category) { create(:category) }
-    let!(:item_a) { create(:item, store:, category:) }
-    let!(:item_b) { create(:item, store:, category:) }
-    let!(:item_c) { create(:item, category:) }
-    let(:params) { { store_id: store.id } }
 
-    it 'return the given items' do
-      get route, params: params
+    context 'there is items' do
+      let(:store) { create(:store) }
+      let(:category) { create(:category) }
+      let!(:item_a) { create(:item, store:, category:) }
+      let!(:item_b) { create(:item, store:, category:) }
+      let!(:item_c) { create(:item, category:) }
+      let(:params) { { store_id: store.id } }
 
-      expect(assigns(:items)).to include(item_a)
-      expect(assigns(:items)).to include(item_b)
-    end
+      it 'return the given items' do
+        get route, params: params
 
-    it 'has a ok status' do
-      get route, params: params
+        expect(assigns(:items)).to include(item_a)
+        expect(assigns(:items)).to include(item_b)
+      end
 
-      expect(response).to have_http_status(:ok)
-    end
+      it 'has a ok status' do
+        get route, params: params
 
-    it "don't return the items of other stores" do
-      get route, params: params
+        expect(response).to have_http_status(:ok)
+      end
 
-      expect(assigns(:items)).not_to include(item_c)
+      it "don't return the items of other stores" do
+        get route, params: params
+
+        expect(assigns(:items)).not_to include(item_c)
+      end
     end
   end
 
   describe 'GET#show' do
-    let(:route) { item_path(item.id) }
-    let(:store) { create(:store) }
-    let(:category) { create(:category) }
-    let(:item) { create(:item, store:, category:) }
-    let(:params) { { store_id: store.id } }
+    context 'there is an item' do
+      let(:route) { item_path(item.id) }
+      let(:store) { create(:store) }
+      let(:category) { create(:category) }
+      let(:item) { create(:item, store:, category:) }
+      let(:params) { { store_id: store.id } }
 
-    it 'return the given item' do
-      get route, params: params
+      it 'return the given item' do
+        get route, params: params
 
-      expect(assigns(:item)).to eq(item)
-    end
+        expect(assigns(:item)).to eq(item)
+      end
 
-    it 'has a ok status' do
-      get route, params: params
+      it 'has a ok status' do
+        get route, params: params
 
-      expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
   describe 'PATCH#update' do
+    let(:params) { { name: 'New name' } }
+
     context 'when the user is not logged' do
       let(:route) { item_path(item.id) }
       let(:store) { create(:store) }
@@ -61,7 +68,7 @@ RSpec.describe ItemsController, type: :request do
         let(:item) { create(:item, store:) }
 
         it 'has a unauthorized status' do
-          patch route, params: { name: 'New name' }
+          patch route, params: params
 
           expect(response).to have_http_status(:unauthorized)
         end
@@ -76,7 +83,6 @@ RSpec.describe ItemsController, type: :request do
       context 'when the item is from the user store' do
         let(:item) { create(:item, store:) }
         let(:route) { item_path(item.id) }
-        let(:params) { { name: 'New name' } }
 
         it 'updates the given item' do
           patch route, params: params, headers: headers
@@ -106,7 +112,6 @@ RSpec.describe ItemsController, type: :request do
       context 'when the item is not from the user store' do
         let(:item) { create(:item) }
         let(:route) { item_path(item.id) }
-        let(:params) { { name: 'New name' } }
 
         it 'has a unauthorized status' do
           patch route, params: params, headers: headers
@@ -122,8 +127,6 @@ RSpec.describe ItemsController, type: :request do
     let(:store) { create(:store) }
     let(:category) { create(:category) }
     let(:item) { create(:item, store:, category:) }
-    let(:user) { create(:user, store:) }
-    let(:headers) { create_headers_with_bearer_token(user) }
 
     context 'when the user is not logged' do
       it 'has a unauthorized status' do
@@ -134,6 +137,9 @@ RSpec.describe ItemsController, type: :request do
     end
 
     context 'when the user is logged' do
+      let(:user) { create(:user, store:) }
+      let(:headers) { create_headers_with_bearer_token(user) }
+
       it 'deletes the given item' do
         delete route, headers: headers
 
