@@ -15,7 +15,7 @@ class ItemsController < ApplicationController
   end
 
   def update
-    return render json: {}, status: :unauthorized unless current_user.store == @item.store
+    return render json: {}, status: :unauthorized unless item_belongs_to_user_store?
 
     updater = Items::Updater.new(item: @item, params: update_params)
 
@@ -27,7 +27,7 @@ class ItemsController < ApplicationController
   end
 
   def destroy
-    return render json: {}, status: :unauthorized unless current_user.store == @item.store
+    return render json: {}, status: :unauthorized unless item_belongs_to_user_store?
 
     destroyer = Items::Destroyer.new(@item)
 
@@ -39,7 +39,7 @@ class ItemsController < ApplicationController
   end
 
   def create
-    unless @category.store == current_user.store
+    unless category_belongs_to_user_store?
       return render json: {},
                     status: :bad_request
     end
@@ -66,6 +66,14 @@ class ItemsController < ApplicationController
     params.permit(:store_id, :category_id)
   end
 
+  def update_params
+    params.permit(:id, :name, :description)
+  end
+
+  def create_params
+    params.permit(:name, :description, :category_id)
+  end
+
   def load_items
     @items = Items::Query.new
                          .by_store(index_params[:store_id])
@@ -77,15 +85,15 @@ class ItemsController < ApplicationController
     @item = Items::Finder.new(params[:id]).find
   end
 
-  def update_params
-    params.permit(:id, :name, :description)
-  end
-
-  def create_params
-    params.permit(:name, :description, :category_id)
-  end
-
   def load_category
     @category = Categories::Finder.new(create_params[:category_id]).find
+  end
+
+  def category_belongs_to_user_store?
+    @category.store == current_user.store
+  end
+
+  def item_belongs_to_user_store?
+    @item.store == current_user.store
   end
 end
