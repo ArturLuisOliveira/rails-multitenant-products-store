@@ -10,11 +10,13 @@ class CategoriesController < ApplicationController
   end
 
   def create
-    if Categories::Creator.new(
+    creator = Categories::Creator.new(
       store: current_user.store,
       name: create_params[:name],
       description: create_params[:description]
-    ).create
+    )
+
+    if creator.create
       render json: {}, status: :created
     else
       render json: {}, status: :unprocessable_entity
@@ -22,15 +24,17 @@ class CategoriesController < ApplicationController
   end
 
   def update
-    unless current_user.store == @category.store
+    unless category_belongs_to_user_store?
       render json: { error: 'Unauthorized access' },
              status: :unauthorized and return
     end
 
-    if Categories::Updater.new(
+    updater = Categories::Updater.new(
       category: @category,
       params: update_params
-    ).update
+    )
+
+    if updater.update
       render json: @category, status: :ok, serializer: CategorySerializer
     else
       render json: {}, status: :unprocessable_entity
@@ -38,12 +42,14 @@ class CategoriesController < ApplicationController
   end
 
   def destroy
-    unless current_user.store == @category.store
+    unless category_belongs_to_user_store?
       render json: { error: 'Unauthorized access' },
              status: :unauthorized and return
     end
 
-    if Categories::Destroyer.new(params[:id]).destroy
+    destroyer = Categories::Destroyer.new(@category.id)
+
+    if destroyer.destroy
       render json: @category, status: :ok, serializer: CategorySerializer
     else
       render json: {}, status: :unprocessable_entity
@@ -74,5 +80,9 @@ class CategoriesController < ApplicationController
 
   def load_category
     @category = Categories::Finder.new(params[:id]).find
+  end
+
+  def category_belongs_to_user_store?
+    current_user.store == @category.store
   end
 end

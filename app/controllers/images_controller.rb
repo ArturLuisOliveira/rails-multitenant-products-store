@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+# TODO
 class ImagesController < ApplicationController
   before_action :doorkeeper_authorize!
 

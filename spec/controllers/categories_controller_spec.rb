@@ -4,123 +4,151 @@ require 'rails_helper'
 
 RSpec.describe CategoriesController, type: :request do
   describe 'GET#index' do
-    let!(:store) { create(:store) }
-    let!(:category_a) { create(:category, store:) }
-    let!(:category_b) { create(:category, store:) }
-    let!(:category_c) { create(:category) }
     let(:route) { categories_path }
-    let(:params) { { store_id: store.id } }
 
-    it 'returns the categories' do
-      get route, params: params
-      expect(assigns(:categories)).to include(category_a)
-      expect(assigns(:categories)).to include(category_b)
-      expect(assigns(:categories)).not_to include(category_c)
+    context 'when the given stores have categories' do
+      let!(:store) { create(:store) }
+      let!(:category_a) { create(:category, store:) }
+      let!(:category_b) { create(:category, store:) }
+      let!(:category_c) { create(:category) }
+      let(:params) { { store_id: store.id } }
+
+      it 'returns the categories' do
+        get route, params: params
+
+        expect(assigns(:categories)).to include(category_a)
+        expect(assigns(:categories)).to include(category_b)
+      end
+
+      it 'has a success status' do
+        get route, params: params
+
+        expect(response).to have_http_status(:success)
+      end
+
+      it "don't return the categories of other stores" do
+        get route, params: params
+
+        expect(assigns(:categories)).not_to include(category_c)
+      end
     end
   end
 
   describe 'POST#create' do
-    let(:store) { create(:store) }
-    let(:user) { create(:user, store:) }
-    let(:headers) { create_headers_with_bearer_token(user) }
     let(:params) { { name: 'new name', description: 'new description' } }
     let(:route) { categories_path }
 
-    describe 'when the user is not logged' do
-      it 'has an unauthorized status' do
-        post route, params: params
+    context 'given a store' do
+      let(:store) { create(:store) }
 
-        expect(response).to have_http_status(:unauthorized)
+      context 'when the user is not logged' do
+        it 'has an unauthorized status' do
+          post route, params: params
+
+          expect(response).to have_http_status(:unauthorized)
+        end
       end
-    end
 
-    describe 'when the user is logged' do
-      it 'creates the given category' do
-        expect { post route, params:, headers: }.to change(Category, :count).from(0).to(1)
+      context 'when the store user is logged' do
+        let(:user) { create(:user, store:) }
+        let(:headers) { create_headers_with_bearer_token(user) }
+
+        it 'creates the given category' do
+          expect { post route, params:, headers: }.to change(Category, :count).from(0).to(1)
+        end
       end
     end
   end
 
   describe 'PATCH#update' do
-    let(:store_a) { create(:store) }
-    let(:store_b) { create(:store) }
-
-    let(:category_a) { create(:category, store: store_a) }
-    let(:category_b) { create(:category, store: store_b) }
-
-    let(:user) { create(:user, store: store_a) }
-    let(:headers) { create_headers_with_bearer_token(user) }
+    let(:route) { category_path(category) }
     let(:params) { { name: 'new name', description: 'new description' } }
 
-    describe 'when the user is not logged' do
-      let(:route) { category_path(category_a) }
+    context 'the store has a category' do
+      let(:store) { create(:store) }
+      let(:category) { create(:category, store:) }
 
-      it 'has an unauthorized status' do
-        patch route, params: params
+      context 'when the user is not logged' do
+        it 'has an unauthorized status' do
+          patch route, params: params
 
-        expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:unauthorized)
+        end
       end
-    end
 
-    describe 'when the user belongs to a different store' do
-      let(:route) { category_path(category_b) }
+      context 'when the user is logged' do
+        let(:user) { create(:user, store:) }
+        let(:headers) { create_headers_with_bearer_token(user) }
 
-      it 'has an unauthorized status' do
-        patch route, params: params, headers: headers
+        it 'updates the given category' do
+          patch route, params: params, headers: headers
 
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
+          category.reload
+          expect(category.name).to eq(params[:name])
+          expect(category.description).to eq(params[:description])
+        end
 
-    describe 'when the user is logged' do
-      let(:route) { category_path(category_a) }
+        it 'returns the category' do
+          patch route, params: params, headers: headers
 
-      it 'updates the given category' do
-        patch route, params: params, headers: headers
+          expect(response.body).to include(params[:name])
+          expect(response.body).to include(params[:description])
+        end
 
-        category_a.reload
-        expect(category_a.name).to eq(params[:name])
-        expect(category_a.description).to eq(params[:description])
+        it 'has a success status' do
+          patch route, params: params, headers: headers
+
+          expect(response).to have_http_status(:success)
+        end
+
+        context 'when the category belongs to different store' do
+          let(:category) { create(:category) }
+          let(:route) { category_path(category) }
+
+          it 'has an unauthorized status' do
+            patch route, params: params, headers: headers
+
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
       end
     end
   end
 
   describe 'DELETE#destroy' do
-    let(:store_a) { create(:store) }
-    let(:store_b) { create(:store) }
-    let!(:category_a) { create(:category, store: store_a) }
-    let(:category_b) { create(:category, store: store_b) }
+    context 'when the store has a category' do
+      let(:store) { create(:store) }
+      let!(:category) { create(:category, store:) }
+      let(:route) { category_path(category) }
 
-    let(:user) { create(:user, store: store_a) }
-    let(:headers) { create_headers_with_bearer_token(user) }
+      context 'when the user is not logged' do
+        it 'has an unauthorized status' do
+          delete route
 
-    describe 'when the user is not logged' do
-      let(:route) { category_path(category_a) }
-
-      it 'has an unauthorized status' do
-        delete route
-
-        expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:unauthorized)
+        end
       end
-    end
 
-    describe 'when the user belongs to a different store' do
-      let(:route) { category_path(category_b) }
+      context 'when the user is logged' do
+        let(:user) { create(:user, store:) }
+        let(:headers) { create_headers_with_bearer_token(user) }
 
-      it 'has an unauthorized status' do
-        delete route, headers: headers
+        it 'removes the category' do
+          expect do
+            delete route, headers:
+          end.to change(Category, :count).from(1).to(0)
+        end
 
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
+        context 'when the category belongs to a different store' do
+          let(:category) { create(:category) }
+          let(:route) { category_path(category) }
 
-    describe 'when the user is logged' do
-      let(:route) { category_path(category_a) }
+          it 'has an unauthorized status' do
+            delete route, headers: headers
 
-      it 'removes the category' do
-        expect do
-          delete route, headers:
-        end.to change(Category, :count).from(1).to(0)
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
       end
     end
   end
