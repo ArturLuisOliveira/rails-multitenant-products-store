@@ -2,9 +2,9 @@
 
 class ItemsController < ApplicationController
   before_action :doorkeeper_authorize!, only: %i[update destroy create]
-  before_action :items, only: %i[index]
-  before_action :item, only: %i[show update destroy]
-  before_action :category, only: %i[create]
+  before_action :load_items, only: %i[index]
+  before_action :load_item, only: %i[show update destroy]
+  before_action :load_category, only: %i[create]
 
   def index
     render json: @items, status: :ok, each_serializer: ItemSerializer
@@ -17,7 +17,9 @@ class ItemsController < ApplicationController
   def update
     return render json: {}, status: :unauthorized unless current_user.store == @item.store
 
-    if Items::Updater.new(item:, params: update_params).update
+    updater = Items::Updater.new(item: @item, params: update_params)
+
+    if updater.update
       render json: @item, status: :ok, serializer: ItemSerializer
     else
       render json: {}, status: :unprocessable_entity
@@ -27,7 +29,9 @@ class ItemsController < ApplicationController
   def destroy
     return render json: {}, status: :unauthorized unless current_user.store == @item.store
 
-    if Items::Destroyer.new(@item).destroy
+    destroyer = Items::Destroyer.new(@item)
+
+    if destroyer.destroy
       render json: @item, status: :ok
     else
       render json: {}, status: :unprocessable_entity
@@ -40,12 +44,14 @@ class ItemsController < ApplicationController
                     status: :bad_request
     end
 
-    @item = Items::Creator.new(
+    creator = Items::Creator.new(
       store: current_user.store,
       description: create_params[:description],
       name: create_params[:name],
       category: @category
-    ).create
+    )
+
+    @item = creator.create
 
     if @item
       render json: @item, status: :created, serializer: ItemSerializer
@@ -60,14 +66,14 @@ class ItemsController < ApplicationController
     params.permit(:store_id, :category_id)
   end
 
-  def items
+  def load_items
     @items = Items::Query.new
                          .by_store(index_params[:store_id])
                          .by_category(index_params[:category_id])
                          .query
   end
 
-  def item
+  def load_item
     @item = Items::Finder.new(params[:id]).find
   end
 
@@ -79,7 +85,7 @@ class ItemsController < ApplicationController
     params.permit(:name, :description, :category_id)
   end
 
-  def category
+  def load_category
     @category = Categories::Finder.new(create_params[:category_id]).find
   end
 end
