@@ -15,37 +15,41 @@ RSpec.describe StoresController, type: :request do
   end
 
   describe 'PATCH#update' do
-    let(:store) { create(:store, description: 'Old description') }
     let(:route) { store_path(store.id) }
-    let(:user) { create(:user, store:) }
-    let(:headers) { create_headers_with_bearer_token(user) }
-    let(:description) { 'New description' }
 
-    context 'when the user is not logged' do
-      it 'has a unauthorized status' do
-        patch route, params: { description: }
+    context 'there is a given store' do
+      let(:store) { create(:store, description: 'Old description') }
+      let(:description) { 'New description' }
 
-        expect(response).to have_http_status(:unauthorized)
+      context 'when the user is not logged' do
+        it 'has a unauthorized status' do
+          patch route, params: { description: }
+
+          expect(response).to have_http_status(:unauthorized)
+        end
       end
-    end
 
-    context 'when the user is logged' do
-      it 'update the given item' do
-        patch route, params: { description: }, headers: headers
+      context 'when the user is logged' do
+        let(:user) { create(:user, store:) }
+        let(:headers) { create_headers_with_bearer_token(user) }
 
-        store.reload
-        expect(store.description).to eq(description)
-      end
-    end
+        it 'update the given item' do
+          patch route, params: { description: }, headers: headers
 
-    context 'when the user belongs to a different store' do
-      let(:outside_store) { create(:store, description: 'Old description') }
-      let(:route) { store_path(outside_store.id) }
+          store.reload
+          expect(store.description).to eq(description)
+        end
 
-      it 'has a unauthorized status' do
-        patch route, params: { description: }, headers: headers
+        context "when the store don't belongs to the user" do
+          let(:outside_store) { create(:store, description: 'Old description') }
+          let(:route) { store_path(outside_store.id) }
 
-        expect(response).to have_http_status(:unauthorized)
+          it 'has a unauthorized status' do
+            patch route, params: { description: }, headers: headers
+
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
       end
     end
   end

@@ -17,7 +17,7 @@ class ItemsController < ApplicationController
   def update
     return render json: {}, status: :unauthorized unless item_belongs_to_user_store?
 
-    updater = Items::Updater.new(item: @item, params: update_params)
+    updater = Items::Updater.new(@item, update_params)
 
     if updater.update
       render json: @item, status: :ok, serializer: ItemSerializer

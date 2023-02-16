@@ -55,3 +55,10 @@ docker-compose run api rspec
 ```
 docker-compose run api rubocop
 ```
+
+## TODO
+- Allow users to have multiple stores by creating a UserStore bridge table.
+
+- Implement image upload using Active Storage and S3.
+
+- Implement seed data.

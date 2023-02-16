@@ -2,7 +2,7 @@
 
 module Items
   class Updater
-    def initialize(item:, params:)
+    def initialize(item, params)
       @item = item
       @params = params
     end
