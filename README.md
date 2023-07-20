@@ -73,5 +73,3 @@ docker-compose run api rubocop
 - Add Redis for cache.
 
 - Create Open API documentation.
-
-- Fix all rubocop warnings.
